@@ -1,0 +1,26 @@
+{
+  "name": "@repo/config",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts",
+    "./env": "./src/env.ts",
+    "./features": "./src/features.ts"
+  },
+  "scripts": {
+    "lint": "eslint src --max-warnings 0",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "^3.22.4",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "^20.10.4",
+    "typescript": "5.9.2",
+    "eslint": "^9.34.0"
+  }
+}
