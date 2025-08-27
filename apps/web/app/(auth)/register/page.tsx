@@ -4,144 +4,122 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { ProgressSteps } from "@/components/ui/progress-steps";
+import { Step1AccountCreation, Step2BusinessDetails, Step3ServicesSetup, Step4TeamInvitation } from "@/components/auth/register-steps";
+import { step1RegisterSchema, step2RegisterSchema, step3RegisterSchema, step4RegisterSchema, Step1RegisterInput, Step2RegisterInput, Step3RegisterInput, Step4RegisterInput } from "@/lib/validations";
 import { toast } from "react-hot-toast";
+import { createSalonXClient } from "@repo/sdk";
 
-const registerSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  confirmPassword: z.string(),
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
-  orgName: z.string().min(1, "Organization name is required"),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
+const STEPS = [
+  { title: "Account", description: "Basic information" },
+  { title: "Business", description: "Salon details" },
+  { title: "Services", description: "Your offerings" },
+  { title: "Team", description: "Invite staff" },
+];
+
+const salonxClient = createSalonXClient({
+  baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1",
 });
 
-type RegisterFormData = z.infer<typeof registerSchema>;
+type CompleteFormData = Step1RegisterInput & Step2RegisterInput & Step3RegisterInput & Step4RegisterInput;
 
 export default function RegisterPage() {
+  const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState<Partial<CompleteFormData>>({});
   const router = useRouter();
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema),
+  const getCurrentSchema = () => {
+    switch (currentStep) {
+      case 1: return step1RegisterSchema;
+      case 2: return step2RegisterSchema;
+      case 3: return step3RegisterSchema;
+      case 4: return step4RegisterSchema;
+      default: return step1RegisterSchema;
+    }
+  };
+
+  const form = useForm({
+    resolver: zodResolver(getCurrentSchema()),
+    defaultValues: formData,
   });
 
-  const onSubmit = async (data: RegisterFormData) => {
-    setIsLoading(true);
+  const handleNext = async () => {
+    const isValid = await form.trigger();
+    if (!isValid) return;
 
+    const stepData = form.getValues();
+    setFormData(prev => ({ ...prev, ...stepData }));
+
+    if (currentStep < 4) {
+      setCurrentStep(prev => prev + 1);
+      form.reset({ ...formData, ...stepData });
+    } else {
+      await handleSubmit();
+    }
+  };
+
+  const handlePrev = () => {
+    if (currentStep > 1) {
+      setCurrentStep(prev => prev - 1);
+    }
+  };
+
+  const handleSubmit = async () => {
+    setIsLoading(true);
     try {
-      toast.success("Registration successful! Please sign in.");
-      router.push("/login");
+      const completeData = { ...formData, ...form.getValues() } as CompleteFormData;
+      
+      const registrationData = {
+        email: completeData.email,
+        password: completeData.password,
+        firstName: completeData.firstName,
+        lastName: completeData.lastName,
+        orgName: completeData.salonName,
+      };
+
+      const response = await salonxClient.register(registrationData);
+      
+      if (response.success) {
+        toast.success("Registration successful! Welcome to SalonX!");
+        router.push("/dashboard");
+      } else {
+        throw new Error("Registration failed");
+      }
     } catch (error) {
-      toast.error("An error occurred during registration");
+      console.error("Registration error:", error);
+      toast.error("Registration failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
+  const renderCurrentStep = () => {
+    const stepProps = {
+      form,
+      onNext: handleNext,
+      onPrev: currentStep > 1 ? handlePrev : undefined,
+      isLoading,
+    };
+
+    switch (currentStep) {
+      case 1: return <Step1AccountCreation {...stepProps} />;
+      case 2: return <Step2BusinessDetails {...stepProps} />;
+      case 3: return <Step3ServicesSetup {...stepProps} />;
+      case 4: return <Step4TeamInvitation {...stepProps} />;
+      default: return <Step1AccountCreation {...stepProps} />;
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl text-center">Create your account</CardTitle>
-          <CardDescription className="text-center">
-            Enter your details to get started with SalonX
-          </CardDescription>
+      <Card className="w-full max-w-2xl">
+        <CardHeader className="pb-6">
+          <ProgressSteps steps={STEPS} currentStep={currentStep} />
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="firstName">First Name</Label>
-                <Input
-                  id="firstName"
-                  placeholder="John"
-                  {...register("firstName")}
-                />
-                {errors.firstName && (
-                  <p className="text-sm text-red-600">{errors.firstName.message}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="lastName">Last Name</Label>
-                <Input
-                  id="lastName"
-                  placeholder="Doe"
-                  {...register("lastName")}
-                />
-                {errors.lastName && (
-                  <p className="text-sm text-red-600">{errors.lastName.message}</p>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="orgName">Salon Name</Label>
-              <Input
-                id="orgName"
-                placeholder="Your Salon Name"
-                {...register("orgName")}
-              />
-              {errors.orgName && (
-                <p className="text-sm text-red-600">{errors.orgName.message}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="john@example.com"
-                {...register("email")}
-              />
-              {errors.email && (
-                <p className="text-sm text-red-600">{errors.email.message}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Enter your password"
-                {...register("password")}
-              />
-              {errors.password && (
-                <p className="text-sm text-red-600">{errors.password.message}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                placeholder="Confirm your password"
-                {...register("confirmPassword")}
-              />
-              {errors.confirmPassword && (
-                <p className="text-sm text-red-600">{errors.confirmPassword.message}</p>
-              )}
-            </div>
-
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Creating account..." : "Create account"}
-            </Button>
-          </form>
+        <CardContent className="px-8 pb-8">
+          {renderCurrentStep()}
         </CardContent>
       </Card>
     </div>

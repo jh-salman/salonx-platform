@@ -103,8 +103,47 @@ export const smsCampaignSchema = z.object({
   sendImmediately: z.boolean().default(false),
 });
 
+export const step1RegisterSchema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+});
+
+export const step2RegisterSchema = z.object({
+  salonName: z.string().min(2, "Salon name must be at least 2 characters"),
+  phone: z.string().regex(/^\+?[\d\s\-\(\)]{10,}$/, "Invalid phone number"),
+  address: z.string().min(5, "Address is required"),
+  timezone: z.string().min(1, "Timezone is required"),
+});
+
+export const step3RegisterSchema = z.object({
+  services: z.array(z.object({
+    name: z.string().min(1, "Service name is required"),
+    duration: z.number().min(15, "Duration must be at least 15 minutes"),
+    price: z.number().min(0, "Price must be positive"),
+  })).min(1, "At least one service is required"),
+});
+
+export const step4RegisterSchema = z.object({
+  teamMembers: z.array(z.object({
+    name: z.string().min(1, "Name is required"),
+    email: z.string().email("Invalid email address"),
+    role: z.enum(["stylist", "manager"]),
+  })).optional(),
+  skipTeamSetup: z.boolean().default(false),
+});
+
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
+export type Step1RegisterInput = z.infer<typeof step1RegisterSchema>;
+export type Step2RegisterInput = z.infer<typeof step2RegisterSchema>;
+export type Step3RegisterInput = z.infer<typeof step3RegisterSchema>;
+export type Step4RegisterInput = z.infer<typeof step4RegisterSchema>;
 export type ClientInput = z.infer<typeof clientSchema>;
 export type ServiceInput = z.infer<typeof serviceSchema>;
 export type StylistInput = z.infer<typeof stylistSchema>;
