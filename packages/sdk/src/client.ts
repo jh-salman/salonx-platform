@@ -177,7 +177,27 @@ export class SalonXClient {
   async publishWebsite(): Promise<ApiResponse<any>> {
     return this.api.post('admin/website/publish').json();
   }
+
+  async login(credentials: { email: string; password: string }): Promise<ApiResponse<{ user: any; accessToken: string }>> {
+    return this.api.post('auth/login', { json: credentials }).json();
+  }
+
+  async register(userData: { email: string; password: string; firstName: string; lastName: string; orgName?: string }): Promise<ApiResponse<{ user: any; accessToken: string }>> {
+    return this.api.post('auth/register', { json: userData }).json();
+  }
+
+  async logout(): Promise<ApiResponse<any>> {
+    return this.api.post('auth/logout').json();
+  }
+
+  async refreshToken(): Promise<ApiResponse<{ accessToken: string }>> {
+    return this.api.post('auth/refresh').json();
+  }
 }
+
+export const salonxClient = new SalonXClient({
+  baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+});
 
 export function createSalonXClient(options: SalonXClientOptions): SalonXClient {
   return new SalonXClient(options);
