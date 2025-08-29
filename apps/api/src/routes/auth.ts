@@ -43,12 +43,39 @@ router.post('/register', validateBody(registerSchema), async (req, res) => {
 
     const passwordHash = await bcrypt.hash(password, 12);
 
-    const tempOrgId = crypto.randomUUID();
+    const tempUserId = crypto.randomUUID();
     
+    let orgId: string;
+    if (orgName) {
+      const baseSlug = orgName.toLowerCase().replace(/[^a-z0-9]/g, '-');
+      const uniqueSlug = `${baseSlug}-${Date.now()}`;
+      const newOrg = await db
+        .insert(orgs)
+        .values({
+          name: orgName,
+          slug: uniqueSlug,
+          ownerId: tempUserId,
+        })
+        .returning();
+      orgId = newOrg[0]!.id;
+    } else {
+      const baseSlug = `${firstName}-${lastName}`.toLowerCase().replace(/[^a-z0-9]/g, '-');
+      const uniqueSlug = `${baseSlug}-${Date.now()}`;
+      const newOrg = await db
+        .insert(orgs)
+        .values({
+          name: `${firstName} ${lastName}'s Organization`,
+          slug: uniqueSlug,
+          ownerId: tempUserId,
+        })
+        .returning();
+      orgId = newOrg[0]!.id;
+    }
+
     const newUser = await db
       .insert(profiles)
       .values({
-        orgId: tempOrgId,
+        orgId,
         email,
         passwordHash,
         firstName,
@@ -57,33 +84,10 @@ router.post('/register', validateBody(registerSchema), async (req, res) => {
       })
       .returning();
 
-    let orgId: string;
-    if (orgName) {
-      const newOrg = await db
-        .insert(orgs)
-        .values({
-          name: orgName,
-          slug: orgName.toLowerCase().replace(/[^a-z0-9]/g, '-'),
-          ownerId: newUser[0]!.id,
-        })
-        .returning();
-      orgId = newOrg[0]!.id;
-    } else {
-      const newOrg = await db
-        .insert(orgs)
-        .values({
-          name: `${firstName} ${lastName}'s Organization`,
-          slug: `${firstName}-${lastName}`.toLowerCase().replace(/[^a-z0-9]/g, '-'),
-          ownerId: newUser[0]!.id,
-        })
-        .returning();
-      orgId = newOrg[0]!.id;
-    }
-
     await db
-      .update(profiles)
-      .set({ orgId })
-      .where(eq(profiles.id, newUser[0]!.id));
+      .update(orgs)
+      .set({ ownerId: newUser[0]!.id })
+      .where(eq(orgs.id, orgId));
 
     const accessToken = jwt.sign(
       {
