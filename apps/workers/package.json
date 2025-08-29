@@ -18,6 +18,8 @@
     "@sentry/node": "^7.81.1",
     "bullmq": "^4.15.0",
     "date-fns": "^2.30.0",
+    "drizzle-orm": "^0.29.1",
+    "ioredis": "^5.3.2",
     "nodemailer": "^6.9.7",
     "pino": "^8.16.2",
     "pino-pretty": "^13.1.1",

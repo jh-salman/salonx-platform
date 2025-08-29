@@ -4,11 +4,12 @@
   "type": "module",
   "private": true,
   "exports": {
-    ".": "./src/index.ts",
-    "./env": "./src/env.ts",
-    "./features": "./src/features.ts"
+    ".": "./dist/index.js",
+    "./env": "./dist/env.js",
+    "./features": "./dist/features.js"
   },
   "scripts": {
+    "build": "tsc",
     "lint": "eslint src --max-warnings 0",
     "check-types": "tsc --noEmit"
   },
