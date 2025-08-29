@@ -8,6 +8,7 @@ export const profiles = pgTable('profiles', {
   id: uuid('id').primaryKey().defaultRandom(),
   orgId: uuid('org_id').notNull().references(() => orgs.id, { onDelete: 'cascade' }),
   email: text('email').notNull(),
+  passwordHash: text('password_hash').notNull(),
   firstName: text('first_name').notNull(),
   lastName: text('last_name').notNull(),
   role: roleEnum('role').notNull().default('member'),
