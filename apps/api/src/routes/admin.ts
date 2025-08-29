@@ -1,12 +1,12 @@
-import { Router } from 'express';
+import { Router, type Router as ExpressRouter } from 'express';
 import { z } from 'zod';
 import { db } from '@repo/db';
 import { appointments, services, stylists, clients, brands } from '@repo/db/schema';
 import { eq, and, desc, gte, lte, count } from 'drizzle-orm';
-import { validateBody, validateQuery, validateParams } from '../middleware/validation';
-import type { AuthenticatedRequest } from '../middleware/auth';
+import { validateBody, validateQuery, validateParams } from '../middleware/validation.js';
+import type { AuthenticatedRequest } from '../middleware/auth.js';
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 const appointmentQuerySchema = z.object({
   page: z.string().transform(val => parseInt(val, 10)).default('1'),
@@ -65,8 +65,8 @@ router.get('/appointments', validateQuery(appointmentQuerySchema), async (req: A
         pagination: {
           page,
           limit,
-          total: totalCount[0].count,
-          totalPages: Math.ceil(totalCount[0].count / limit),
+          total: totalCount[0]?.count || 0,
+          totalPages: Math.ceil((totalCount[0]?.count || 0) / limit),
         },
       },
     });
@@ -104,7 +104,7 @@ router.patch('/appointments/:id',
           ...updates,
           updatedAt: new Date(),
         })
-        .where(eq(appointments.id, id))
+        .where(eq(appointments.id, id!))
         .returning();
 
       if (!updatedAppointment.length) {
@@ -138,7 +138,7 @@ router.post('/appointments/:id/park', validateParams(appointmentParamsSchema), a
         status: 'PARKED',
         updatedAt: new Date(),
       })
-      .where(eq(appointments.id, id))
+      .where(eq(appointments.id, id!))
       .returning();
 
     res.json({
@@ -164,7 +164,7 @@ router.post('/appointments/:id/return', validateParams(appointmentParamsSchema),
         status: 'CONFIRMED',
         updatedAt: new Date(),
       })
-      .where(eq(appointments.id, id))
+      .where(eq(appointments.id, id!))
       .returning();
 
     res.json({
@@ -199,7 +199,7 @@ router.post('/appointments/:id/cancel',
           notes: reason ? `Cancelled: ${reason}` : 'Cancelled',
           updatedAt: new Date(),
         })
-        .where(eq(appointments.id, id))
+        .where(eq(appointments.id, id!))
         .returning();
 
       res.json({
@@ -235,7 +235,7 @@ router.post('/appointments/:id/reschedule',
         })
         .from(appointments)
         .innerJoin(services, eq(appointments.serviceId, services.id))
-        .where(eq(appointments.id, id))
+        .where(eq(appointments.id, id!))
         .limit(1);
 
       if (!currentAppointment.length) {
@@ -246,7 +246,7 @@ router.post('/appointments/:id/reschedule',
       }
 
       const newStartTime = new Date(newStartAt);
-      const newEndTime = new Date(newStartTime.getTime() + currentAppointment[0].service.durationMinutes * 60000);
+      const newEndTime = new Date(newStartTime.getTime() + (currentAppointment[0]?.service.durationMinutes || 60) * 60000);
 
       const updatedAppointment = await db
         .update(appointments)
@@ -255,7 +255,7 @@ router.post('/appointments/:id/reschedule',
           endAt: newEndTime,
           updatedAt: new Date(),
         })
-        .where(eq(appointments.id, id))
+        .where(eq(appointments.id, id!))
         .returning();
 
       res.json({
@@ -282,7 +282,7 @@ router.post('/appointments/:id/mark-paid', validateParams(appointmentParamsSchem
         paymentStatus: 'PAID',
         updatedAt: new Date(),
       })
-      .where(eq(appointments.id, id))
+      .where(eq(appointments.id, id!))
       .returning();
 
     res.json({

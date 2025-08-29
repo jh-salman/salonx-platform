@@ -1,6 +1,6 @@
 import type { Express } from 'express';
-import { publicRoutes } from './public';
-import { adminRoutes } from './admin';
+import { publicRoutes } from './public.js';
+import { adminRoutes } from './admin.js';
 
 export function setupRoutes(app: Express) {
   app.use('/public', publicRoutes);

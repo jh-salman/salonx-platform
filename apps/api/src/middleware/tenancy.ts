@@ -2,7 +2,7 @@ import type { Request, Response, NextFunction } from 'express';
 import { db } from '@repo/db';
 import { brands } from '@repo/db/schema';
 import { eq } from 'drizzle-orm';
-import type { AuthenticatedRequest } from './auth';
+import type { AuthenticatedRequest } from './auth.js';
 
 export interface TenantRequest extends AuthenticatedRequest {
   brand?: {
@@ -90,7 +90,7 @@ async function resolveBrandFromUser(req: TenantRequest, res: Response, next: Nex
         });
       }
 
-      if (brand[0].orgId !== req.user!.orgId) {
+      if (!brand[0] || brand[0].orgId !== req.user!.orgId) {
         return res.status(403).json({
           success: false,
           error: 'Access denied to this brand',

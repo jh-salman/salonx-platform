@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
 import { createClient } from 'redis';
 import { env } from '@repo/config/env';
-import { RATE_LIMITS } from '@repo/config/constants';
+import { RATE_LIMITS } from '@repo/config';
 
 const redis = createClient({ url: env.REDIS_URL });
 

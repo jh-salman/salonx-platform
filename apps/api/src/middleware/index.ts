@@ -1,8 +1,8 @@
 import type { Express } from 'express';
-import { authMiddleware } from './auth';
-import { rateLimitMiddleware } from './rate-limit';
-import { auditMiddleware } from './audit';
-import { tenancyMiddleware } from './tenancy';
+import { authMiddleware } from './auth.js';
+import { rateLimitMiddleware } from './rate-limit.js';
+import { auditMiddleware } from './audit.js';
+import { tenancyMiddleware } from './tenancy.js';
 
 export function setupMiddleware(app: Express) {
   app.use(rateLimitMiddleware);
@@ -14,8 +14,8 @@ export function setupMiddleware(app: Express) {
   app.use(auditMiddleware);
 }
 
-export * from './auth';
-export * from './rate-limit';
-export * from './audit';
-export * from './tenancy';
-export * from './validation';
+export * from './auth.js';
+export * from './rate-limit.js';
+export * from './audit.js';
+export * from './tenancy.js';
+export * from './validation.js';

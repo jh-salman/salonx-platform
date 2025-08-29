@@ -1,12 +1,15 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import pino from 'pino';
-import pinoHttp from 'pino-http';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const pino = require('pino');
+const pinoHttp = require('pino-http');
+import type { Express } from 'express';
 import { env } from '@repo/config/env';
-import { setupRoutes } from './routes';
-import { setupMiddleware } from './middleware';
-import { setupObservability } from './observability';
+import { setupRoutes } from './routes/index.js';
+import { setupMiddleware } from './middleware/index.js';
+import { setupObservability } from './observability/index.js';
 
 const logger = pino({
   level: env.NODE_ENV === 'development' ? 'debug' : 'info',
@@ -16,7 +19,7 @@ const logger = pino({
   } : undefined,
 });
 
-const app = express();
+const app: Express = express();
 
 setupObservability();
 

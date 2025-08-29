@@ -1,14 +1,14 @@
-import { Router } from 'express';
+import { Router, type Router as ExpressRouter } from 'express';
 import { z } from 'zod';
 import { db } from '@repo/db';
 import { brands, services, stylists, appointments, clients } from '@repo/db/schema';
 import { eq, and, gte, lte } from 'drizzle-orm';
-import { validateBody, validateQuery } from '../middleware/validation';
-import type { TenantRequest } from '../middleware/tenancy';
+import { validateBody, validateQuery } from '../middleware/validation.js';
+import type { TenantRequest } from '../middleware/tenancy.js';
 import Stripe from 'stripe';
 import { env } from '@repo/config/env';
 
-const router = Router();
+const router: ExpressRouter = Router();
 const stripe = new Stripe(env.STRIPE_SECRET_KEY || '', { apiVersion: '2023-10-16' });
 
 router.get('/brand', async (req: TenantRequest, res) => {
@@ -127,7 +127,7 @@ router.post('/availability', validateBody(availabilitySchema), async (req: Tenan
 
     const slots = [];
     const businessHours = { start: 9, end: 17 }; // 9 AM to 5 PM
-    const slotDuration = service[0].durationMinutes;
+    const slotDuration = service[0]?.durationMinutes || 60;
 
     for (const stylist of availableStylists) {
       for (let hour = businessHours.start; hour < businessHours.end; hour++) {
@@ -231,7 +231,7 @@ router.post('/appointments', validateBody(createAppointmentSchema), async (req: 
     }
 
     const startTime = new Date(startAt);
-    const endTime = new Date(startTime.getTime() + service[0].durationMinutes * 60000);
+    const endTime = new Date(startTime.getTime() + (service[0]?.durationMinutes || 60) * 60000);
 
     const appointment = await db
       .insert(appointments)
@@ -239,11 +239,11 @@ router.post('/appointments', validateBody(createAppointmentSchema), async (req: 
         brandId: req.brand.id,
         serviceId,
         stylistId,
-        clientId: clientRecord[0].id,
+        clientId: clientRecord[0]!.id,
         startAt: startTime,
         endAt: endTime,
-        totalAmountInCents: service[0].priceInCents,
-        depositAmountInCents: service[0].depositInCents || Math.floor(service[0].priceInCents * 0.5),
+        totalAmountInCents: service[0]!.priceInCents,
+        depositAmountInCents: service[0]!.depositInCents || Math.floor(service[0]!.priceInCents * 0.5),
         notes,
         status: 'PENDING',
         paymentStatus: 'UNPAID',
@@ -302,7 +302,7 @@ router.post('/payments/checkout', validateBody(checkoutSchema), async (req: Tena
       });
     }
 
-    const { appointment: apt, service, client } = appointment[0];
+    const { appointment: apt, service, client } = appointment[0]!;
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],

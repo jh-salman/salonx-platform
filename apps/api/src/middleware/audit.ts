@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
 import { db } from '@repo/db';
 import { auditLogs } from '@repo/db/schema';
-import type { AuthenticatedRequest } from './auth';
+import type { AuthenticatedRequest } from './auth.js';
 
 export function auditMiddleware(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   if (req.path === '/health' || req.path.startsWith('/static')) {
@@ -45,7 +45,7 @@ export function auditMiddleware(req: AuthenticatedRequest, res: Response, next: 
 
 function extractEntityType(path: string): string {
   const segments = path.split('/').filter(Boolean);
-  if (segments.length >= 2) {
+  if (segments.length >= 2 && segments[1]) {
     return segments[1]; // e.g., /admin/appointments -> appointments
   }
   return 'unknown';

@@ -1,5 +1,5 @@
-import nodemailer from 'nodemailer';
-import { env } from '@repo/config/env';
+import * as nodemailer from 'nodemailer';
+import { env } from '@repo/config';
 
 interface EmailOptions {
   to: string;
@@ -12,7 +12,7 @@ interface EmailOptions {
 let transporter: nodemailer.Transporter;
 
 if (env.POSTMARK_API_TOKEN) {
-  transporter = nodemailer.createTransporter({
+  transporter = nodemailer.createTransport({
     host: 'smtp.postmarkapp.com',
     port: 587,
     secure: false,
@@ -22,7 +22,7 @@ if (env.POSTMARK_API_TOKEN) {
     },
   });
 } else if (env.SENDGRID_API_KEY) {
-  transporter = nodemailer.createTransporter({
+  transporter = nodemailer.createTransport({
     host: 'smtp.sendgrid.net',
     port: 587,
     secure: false,
@@ -32,7 +32,7 @@ if (env.POSTMARK_API_TOKEN) {
     },
   });
 } else {
-  transporter = nodemailer.createTransporter({
+  transporter = nodemailer.createTransport({
     streamTransport: true,
     newline: 'unix',
     buffer: true,

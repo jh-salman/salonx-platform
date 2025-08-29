@@ -1,9 +1,8 @@
 import { NodeSDK } from '@opentelemetry/sdk-node';
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
-import { Resource } from '@opentelemetry/resources';
-import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
+import { SEMRESATTRS_SERVICE_NAME, SEMRESATTRS_SERVICE_VERSION, SEMRESATTRS_DEPLOYMENT_ENVIRONMENT } from '@opentelemetry/semantic-conventions';
 import * as Sentry from '@sentry/node';
-import { env } from '@repo/config/env';
+import { env } from '@repo/config';
 
 export function setupObservability() {
   if (env.SENTRY_DSN) {
@@ -20,11 +19,6 @@ export function setupObservability() {
 
   if (env.OTEL_EXPORTER_OTLP_ENDPOINT) {
     const sdk = new NodeSDK({
-      resource: new Resource({
-        [SemanticResourceAttributes.SERVICE_NAME]: 'salonx-api',
-        [SemanticResourceAttributes.SERVICE_VERSION]: process.env.npm_package_version || '1.0.0',
-        [SemanticResourceAttributes.DEPLOYMENT_ENVIRONMENT]: env.NODE_ENV,
-      }),
       instrumentations: [getNodeAutoInstrumentations()],
     });
 
