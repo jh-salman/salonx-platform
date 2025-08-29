@@ -1,11 +1,13 @@
-import { migrate } from 'drizzle-orm/postgres-js/migrator';
-import { db } from './connection';
+import { migrate as drizzleMigrate } from 'drizzle-orm/postgres-js/migrator';
+import { db } from './connection.js';
 
 export async function runMigrations() {
   console.log('Running migrations...');
-  await migrate(db, { migrationsFolder: './src/migrations' });
+  await drizzleMigrate(db, { migrationsFolder: './src/migrations' });
   console.log('Migrations completed!');
 }
+
+export { drizzleMigrate as migrate };
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   runMigrations()

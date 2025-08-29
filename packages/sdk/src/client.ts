@@ -10,7 +10,7 @@ import type {
   AvailabilityRequest,
   AvailabilitySlot,
   Pagination 
-} from './types';
+} from './types.js';
 
 export interface SalonXClientOptions {
   baseUrl: string;

@@ -1,6 +1,6 @@
 import { pgTable, uuid, text, timestamp, integer, boolean } from 'drizzle-orm/pg-core';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
-import { brands } from './brands';
+import { brands } from './brands.js';
 
 export const services = pgTable('services', {
   id: uuid('id').primaryKey().defaultRandom(),

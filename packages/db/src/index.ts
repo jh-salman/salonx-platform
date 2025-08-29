@@ -1,3 +1,3 @@
-export * from './schema';
-export { db } from './connection';
-export { migrate } from './migrate';
+export * from './schema/index.js';
+export { db } from './connection.js';
+export { migrate } from './migrate.js';

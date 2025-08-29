@@ -1,9 +1,9 @@
 import { pgTable, uuid, text, timestamp, integer, pgEnum, boolean } from 'drizzle-orm/pg-core';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
-import { brands } from './brands';
-import { services } from './services';
-import { stylists } from './stylists';
-import { clients } from './clients';
+import { brands } from './brands.js';
+import { services } from './services.js';
+import { stylists } from './stylists.js';
+import { clients } from './clients.js';
 
 export const appointmentStatusEnum = pgEnum('appointment_status', [
   'PENDING',

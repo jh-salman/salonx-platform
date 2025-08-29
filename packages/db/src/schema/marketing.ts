@@ -1,6 +1,6 @@
 import { pgTable, uuid, text, timestamp, boolean, integer, jsonb, pgEnum } from 'drizzle-orm/pg-core';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
-import { brands } from './brands';
+import { brands } from './brands.js';
 
 export const campaignStatusEnum = pgEnum('campaign_status', ['DRAFT', 'SCHEDULED', 'SENDING', 'SENT', 'CANCELLED']);
 
